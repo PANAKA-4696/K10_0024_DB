@@ -1,3 +1,10 @@
 <resources>
-    <string name="app_name">K10_0024_DB</string>
+    <string name="app_name">10章課題：K023C0024</string>
+    <string name="tv_name">CDショップ</string>
+    <string name="bt_config">コンフィグ画面へ</string>
+    <string name="co_shop">CDショップのアイテム設定</string>
+    <string name="co_name">名前：</string>
+    <string name="co_price">価格：</string>
+    <string name="bt_save">保存</string>
+    <string name="bt_shop">ショップ画面へ</string>
 </resources>
