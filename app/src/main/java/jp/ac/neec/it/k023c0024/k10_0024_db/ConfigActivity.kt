@@ -37,7 +37,7 @@ class ConfigActivity : AppCompatActivity() {
         _CDName = etName.text.toString()
         _CDPrice = etPrice.text.toString()
 
-        if (_CDName.isEmpty() && _CDPrice.isEmpty()){
+        if (_CDName.isNotEmpty() && _CDPrice.isNotEmpty()){
             val CDPrice: Int? = _CDPrice.toIntOrNull()
 
             if (CDPrice != null) {
