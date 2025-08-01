@@ -13,9 +13,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 
 class ConfigActivity : AppCompatActivity() {
-    private var _CDID = -1
-    private var _CDName = ""
-    private var _CDPrice = ""
     //データベースヘルパーオブジェクト
     private val _helper = DatabaseHelper(this@ConfigActivity)
 
@@ -33,45 +30,42 @@ class ConfigActivity : AppCompatActivity() {
         val etName = findViewById<EditText>(R.id.etName)
         val etPrice = findViewById<EditText>(R.id.etPrice)
 
-        _CDID += 1
-        _CDName = etName.text.toString()
-        _CDPrice = etPrice.text.toString()
+        val cdName = etName.text.toString()
+        val cdPrice = etPrice.text.toString()
 
-        if (_CDName.isNotEmpty() && _CDPrice.isNotEmpty()){
-            val CDPrice: Int? = _CDPrice.toIntOrNull()
+        val db = _helper.writableDatabase
 
-            if (CDPrice != null) {
-                //データベースヘルパーオブジェクトからデータベース接続オブジェクトを取得
-                val db = _helper.writableDatabase//書き込みdb
+        try{
+            if (cdName.isNotEmpty() && cdPrice.isNotEmpty()){
+                val CDPrice: Int? = cdPrice.toIntOrNull()
 
-                //インサート用SQL文字列の用意
-                val sqlInsert = "INSERT INTO cdmemos (_id, name, price) VALUES (?, ?, ?)"
+                if(CDPrice != null){
+                    //インサート用SQL文字列の用意
+                    val sqlInsert = "INSERT INTO cdmemos (name, price) VALUES (?, ?)"
+                    //SQL文字列を元にプリペアドステートメントを取得
+                    var stmt = db.compileStatement(sqlInsert)
+                    //変数のバインド
+                    stmt.bindString(1, cdName)
+                    stmt.bindLong(2, CDPrice.toLong())
+                    //インサートSQLの実行
+                    stmt.executeInsert()
+                }else{
+                    Toast.makeText(this@ConfigActivity, "整数値を入力してください", Toast.LENGTH_SHORT).show()
+                }
+            }else if (cdName.isNotEmpty() && cdPrice.isEmpty()){
+                //まず、リストで選択されたカクテルのメモデータを削除。その後インサートを行う
+                //削除用SQL文字列を用意
+                val sqlDelete = "DELETE FROM cdmemos WHERE name = ?"
                 //SQL文字列を元にプリペアドステートメントを取得
-                var stmt = db.compileStatement(sqlInsert)
-                //変数のバインド
-                stmt.bindLong(1, _CDID.toLong())
-                stmt.bindString(2, _CDName)
-                stmt.bindLong(3, _CDPrice.toLong())
-                //インサートSQLの実行
-                stmt.executeInsert()
+                var stmt = db.compileStatement(sqlDelete)
+                //変数のバイド
+                stmt.bindString(1, cdName)
+                //削除SQLの実行。
+                stmt.executeUpdateDelete()
             }
-            else{
-                Toast.makeText(this@ConfigActivity, "整数値を入力してください", Toast.LENGTH_SHORT).show()
-            }
-        }
-        else if (_CDName.isNotEmpty() && _CDPrice.isEmpty()){
-            //データベースヘルパーオブジェクトからデータベース接続オブジェクトを取得
-            val db = _helper.writableDatabase//書き込みdb
-
-            //まず、リストで選択されたカクテルのメモデータを削除。その後インサートを行う
-            //削除用SQL文字列を用意
-            val sqlDelete = "DELETE FROM cocktailmemos WHERE name = ?"
-            //SQL文字列を元にプリペアドステートメントを取得
-            var stmt = db.compileStatement(sqlDelete)
-            //変数のバイド
-            stmt.bindString(1, _CDName)
-            //削除SQLの実行。
-            stmt.executeUpdateDelete()
+        }finally {
+            //try-finallyブロックでデータベース接続を必ず閉じる
+            db.close()
         }
 
         //入力値を消去
