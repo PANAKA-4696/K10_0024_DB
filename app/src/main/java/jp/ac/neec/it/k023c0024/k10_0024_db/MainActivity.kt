@@ -25,7 +25,7 @@ class MainActivity : AppCompatActivity() {
         _CDList = createCDList()
         val lvItem = findViewById<ListView>(R.id.lvItem)
 
-        val adapter = SimpleAdapter(
+        var adapter = SimpleAdapter(
             this@MainActivity,
             _CDList,
             android.R.layout.simple_list_item_2,
@@ -40,6 +40,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun createCDList() : MutableList<MutableMap<String, Any>> {
+        //既存のリストをクリアする
+        _CDList.clear()
+
         //データベースヘルパーオブジェクトからデータベース接続オブジェクトを取得
         val db = _helper.writableDatabase
         //主キーによる検索SQL文字列の用意
@@ -62,6 +65,9 @@ class MainActivity : AppCompatActivity() {
             _CDList.add(mutableMapOf("name" to name, "price" to price))
         }
 
+        //カーソルを閉じる
+        cursor.close()
+
         return _CDList
 
     }
@@ -71,5 +77,24 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this@MainActivity, ConfigActivity::class.java)
             startActivity(intent)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        //最新のデータベース内容を取得
+        _CDList = createCDList()
+
+        //リストビューに新しいリストをセットし直す
+        val lvItem = findViewById<ListView>(R.id.lvItem)
+        var adapter = SimpleAdapter(
+            this@MainActivity,
+            _CDList,
+            android.R.layout.simple_list_item_2,
+            arrayOf("name", "price"),
+            intArrayOf(android.R.id.text1, android.R.id.text2)
+        )
+
+        lvItem.adapter = adapter
     }
 }
