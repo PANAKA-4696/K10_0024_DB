@@ -39,22 +39,35 @@ class ConfigActivity : AppCompatActivity() {
             if (cdName.isNotEmpty() && cdPrice.isNotEmpty()){
                 val CDPrice: Int? = cdPrice.toIntOrNull()
 
-                if(CDPrice != null){
-                    //インサート用SQL文字列の用意
-                    val sqlInsert = "INSERT INTO cdmemos (name, price) VALUES (?, ?)"
-                    //SQL文字列を元にプリペアドステートメントを取得
-                    var stmt = db.compileStatement(sqlInsert)
-                    //変数のバインド
-                    stmt.bindString(1, cdName)
-                    stmt.bindLong(2, CDPrice.toLong())
-                    //インサートSQLの実行
-                    stmt.executeInsert()
-                }else{
-                    Toast.makeText(this@ConfigActivity, "整数値を入力してください", Toast.LENGTH_SHORT).show()
+                //主キーによる検索SQL文字列の用意
+                val sql = "SELECT name FROM cdmemos WHERE name = ?"
+
+                //検索条件となる値を配列で用意
+                val selection = arrayOf(cdName)
+
+                //データベース検索をし、カーソルを取得
+                db.rawQuery(sql, selection).use{ cursor ->
+                    if (cursor.count != 0){}
+                    else if (cursor.count == 0){
+                        if (CDPrice == 0){}
+                        else if (CDPrice != null){
+                            //インサート用SQL文字列の用意
+                            val sqlInsert = "INSERT INTO cdmemos (name, price) VALUES (?, ?)"
+                            //SQL文字列を元にプリペアドステートメントを取得
+                            var stmt = db.compileStatement(sqlInsert)
+                            //変数のバインド
+                            stmt.bindString(1, cdName)
+                            stmt.bindLong(2, CDPrice.toLong())
+                            //インサートSQLの実行
+                            stmt.executeInsert()
+                        }else{
+                            Toast.makeText(this@ConfigActivity, "整数値を入力してください", Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 }
             }else if (cdName.isNotEmpty() && cdPrice.isEmpty()){
                 //まず、リストで選択されたカクテルのメモデータを削除。その後インサートを行う
-                //削除用SQL文字列を用意
+                //削除用SQL文字列 を用意
                 val sqlDelete = "DELETE FROM cdmemos WHERE name = ?"
                 //SQL文字列を元にプリペアドステートメントを取得
                 var stmt = db.compileStatement(sqlDelete)
@@ -77,7 +90,6 @@ class ConfigActivity : AppCompatActivity() {
         override fun onClick(v: View?) {
             finish()
         }
-
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
